@@ -45,4 +45,42 @@ KECCAK256 DUP8 0x2B 0x5D 0x4B SWAP16 KECCAK256 EXP REVERT 0xDD 0x5E
 0x212EC4C313F65365AEADF8E964736F6C634300080600330000000000000000 "
 `
 
-When do we do the CODECOPY operation and when are we overwriting?
+### When we do the CODECOPY operation, what are we overwriting?
+
+The codecopy overwrites the first memory slots including the free memory pointer.
+
+### Could the answer to question 1 allow an optimisation?
+
+We could remove the free memory pointer initialisation code since it is not used.
+
+### Can you trigger a revert in the init code in Remix?
+
+Yes, by sending the wei by deploying the contract, because on the bytecode we can clearly see that the compiler has inserted the payable check by itself.
+
+### Can you think of a situation when the opcode EXTCODECOPY is used?
+
+It is used in delegate calls, proxy contracts and the upgradeable contracts.
+
+### Write YUL code for the following:
+
+- Add 0x07 to 0x08
+- Store the result at next free memory location
+- Write this again in opcodes
+
+#### YUL Code
+
+`
+pragma solidity ^0.8.4;
+
+contract AddYul{
+function add() external pure returns(uint256){
+assembly{
+let ptr := mload(0x40)
+let free_mem := add(ptr, 0x20)
+let result := add(0x07, 0x08)
+mstore(ptr, result)
+return(ptr, free_mem)// end execution,return data mem[p...(p+s)]
+}
+}  
+}
+`
